@@ -9,6 +9,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using TcrmApi.Services;
+using TinyCrm.Core.Data;
+using TinyCrm.Core.Services;
 
 namespace TcrmApi
 {
@@ -25,6 +28,32 @@ namespace TcrmApi
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
+
+            //injecting the dbcontext
+            services.AddDbContext<TinyCrmDbContext>();
+            //inject the services
+            services.AddScoped<ICustomerService, CustomerService>();
+            services.AddScoped<IProductService, ProductService>();
+            services.AddScoped<IExcelIO, ExcelIO>();
+
+            //STEP 1 OF 2
+            //within Startup.cs  
+            // method ConfigureServices
+            // add the following code before the end of the method
+            services.AddCors(options =>
+            {
+                options.AddDefaultPolicy(
+                    builder =>
+                    {
+                        builder.WithOrigins("http://localhost:4200")
+                                            .AllowAnyHeader()
+                                            .AllowAnyMethod();
+                    });
+            });
+
+            //////////////////
+
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -39,10 +68,30 @@ namespace TcrmApi
 
             app.UseAuthorization();
 
+
+
+
+
+
+
+
+            //STEP 2 OF 2
+            //within Startup.cs  
+            // method Configure
+            // add the following code before the app.UseEndpoints ...
+
+
+            app.UseCors();
+
+            ///////////////
+
+
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
             });
+
+
         }
     }
 }
